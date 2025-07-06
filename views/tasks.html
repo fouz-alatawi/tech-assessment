@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Managment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .tasks-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .task {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            width: calc(50% - 20px);
+            /* Two columns */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .task h3 {
+            margin: 0 0 10px;
+        }
+
+        .task p {
+            margin: 5px 0;
+        }
+
+        .task .status {
+            font-weight: bold;
+            color: #a3995c;
+        }
+
+        .task .priority {
+            font-weight: bold;
+            color: #71ab54;
+        }
+
+        .task .created-at {
+            font-style: italic;
+            color: #555;
+        }
+
+        .task-buttons {
+            margin-top: 10px;
+        }
+
+        .task-buttons button {
+            padding: 5px 10px;
+            margin-right: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .task-buttons .update-btn {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .task-buttons .delete-btn {
+            background-color: #ca7135;
+            color: white;
+        }
+
+        .task-buttons button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tasks</h1>
+    <div style="margin-bottom: 20px;">
+        <button onclick="redirectToCreatePage()"
+            style="padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px;">
+            Create New Task
+        </button>
+    </div>
+    <div class="tasks-container" id="tasks-container"></div>
+    <script>
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tasks');
+                }
+                const tasks = await response.json();
+                const container = document.getElementById('tasks-container');
+                container.innerHTML = '';
+                tasks.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task';
+
+                    const createdAt = new Date(Date.parse(task.CreatedAt)).toLocaleString();
+
+                    taskDiv.innerHTML = `
+                        <h3>${task.title}</h3>
+                        <p>${task.description}</p>
+                        <p class="status">Status: ${task.status}</p>
+                        <p class="priority">Priority: ${task.priority}</p>
+                        <p class="created-at">Created At: ${createdAt}</p>
+                        <div class="task-buttons">
+                            <button class="update-btn" onclick="redirectToUpdatePage('${task.ID}')">Update</button>
+                            <button class="delete-btn" onclick="deleteTask('${task.ID}')">Delete</button>
+                        </div>
+                    `;
+                    container.appendChild(taskDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        }
+
+        function redirectToUpdatePage(taskId) {
+            // Redirect to the update page for the specific task
+            window.location.href = `/tasks/${taskId}`;
+        }
+
+        function redirectToCreatePage() {
+            // Redirect to the create page
+            window.location.href = '/tasks/create';
+        }
+
+        async function deleteTask(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete task');
+                }
+
+                // Refresh the task list after deleting
+                fetchTasks();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+
+        // Fetch tasks on page load
+        fetchTasks();
+    </script>
+</body>
+
+</html>

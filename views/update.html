@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Task</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        form {
+            max-width: 400px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Update Task</h1>
+    <form id="update-form">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
+
+        <label for="priority">Priority:</label>
+        <select id="priority" name="priority" required>
+            <option value="Low" selected>Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+        </select>
+
+        <label for="status">Status:</label>
+        <select id="status" name="status" required>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+        </select>
+
+        <button type="submit">Update Task</button>
+    </form>
+
+    <script>
+        const taskId = window.location.pathname.split('/').pop();
+
+        async function fetchTaskDetails() {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch task details');
+                }
+                const task = await response.json();
+                document.getElementById('title').value = task.title;
+                document.getElementById('description').value = task.description;
+                document.getElementById('priority').value = task.priority;
+            } catch (error) {
+                console.error('Error fetching task details:', error);
+            }
+        }
+
+        document.getElementById('update-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const updatedTask = {
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    priority: document.getElementById('priority').value
+                };
+
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedTask)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update task');
+                }
+
+                // Redirect back to the tasks page
+                window.location.href = '/tasks';
+            } catch (error) {
+                console.error('Error updating task:', error);
+            }
+        });
+
+        // Fetch task details on page load
+        fetchTaskDetails();
+    </script>
+</body>
+
+</html>
